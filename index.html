@@ -1,493 +1,628 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symptom Visualizer | A Dev Marvelee Project</title>
-    
-    <!-- FONTS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-
-    <!-- ICONS -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide-static@latest/umd/lucide.js"></script>
-
-    <!-- STYLES -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --bg-primary: #0A0F1A;
-            --bg-secondary: #101827;
-            --glass-bg: rgba(16, 24, 39, 0.7);
-            --accent-cyan: #00FFFF;
-            --accent-magenta: #FF00FF;
-            --text-primary: #F0F4F8;
-            --text-secondary: #A0AEC0;
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            overflow: hidden;
-        }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--border-color);
-            border-radius: 1.5rem;
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
-
-        .gradient-text {
-            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-fill-color: transparent;
-        }
-
-        #human-canvas {
-            cursor: grab;
-            touch-action: none;
-        }
-        #human-canvas:grabbing { cursor: grabbing; }
-
-        .option-btn, .body-part-btn {
-            transition: all 0.3s ease;
-        }
-
-        .body-part-btn:hover {
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
-            transform: translateY(-2px);
-        }
-
-        .option-btn:hover {
-            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));
-            color: var(--bg-primary);
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.1);
-        }
-        .option-btn.active {
-            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));
-            color: var(--bg-primary);
-            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
-        }
-        
-        .lucide { stroke-width: 1.5px; }
-
-        #loader {
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--accent-cyan);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="w-full h-screen overflow-hidden">
-
-    <main id="app-container" class="relative w-full h-full flex items-center justify-center transition-opacity duration-1000 opacity-0">
-        
-        <div id="canvas-container" class="absolute inset-0">
-             <canvas id="human-canvas"></canvas>
-        </div>
-
-        <div id="loader-container" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div id="loader"></div>
-            <p id="loading-text" class="mt-4 text-lg text-gray-300">Initializing 3D Visualizer...</p>
-        </div>
-
-        <header class="absolute top-0 left-0 right-0 p-6 md:p-8 z-20">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter gradient-text">Symptom Visualizer</h1>
-                    <p class="text-sm text-text-secondary hidden md:block">A Digital Health Concept by Dev Marvelee</p>
-                </div>
-                <button id="reset-btn" class="glass-panel py-2 px-4 flex items-center gap-2 hover:border-cyan-400 transition-all duration-300">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                    <span class="hidden md:inline">Reset</span>
-                </button>
-            </div>
-        </header>
-
-        <aside id="ui-sidebar" class="glass-panel absolute top-1/2 -translate-y-1/2 left-6 md:left-8 w-[90%] md:w-96 max-h-[85vh] z-10 flex flex-col p-6 md:p-8 shadow-2xl overflow-hidden">
-            
-            <div id="welcome-screen" class="flex flex-col h-full">
-                <div class="flex-grow">
-                    <h2 class="text-3xl font-bold mb-2">Welcome.</h2>
-                    <p class="text-text-secondary mb-6">This tool visualizes symptoms on a 3D model. Please select a body part to begin.</p>
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Symptom Visualizer | A Dev Marvelee Project</title>  
+      
+    <link rel="preconnect" href="https://fonts.googleapis.com">  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">  
+  
+    <script src="https://cdn.jsdelivr.net/npm/lucide-static@latest/umd/lucide.js"></script>  
+  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <style>  
+        :root {  
+            --bg-primary: #0A0F1A;  
+            --bg-secondary: #101827;  
+            --glass-bg: rgba(16, 24, 39, 0.7);  
+            --accent-cyan: #00FFFF;  
+            --accent-magenta: #FF00FF;  
+            --text-primary: #F0F4F8;  
+            --text-secondary: #A0AEC0;  
+            --border-color: rgba(255, 255, 255, 0.1);  
+        }  
+  
+        body {  
+            font-family: 'Inter', sans-serif;  
+            background-color: var(--bg-primary);  
+            color: var(--text-primary);  
+            overflow: hidden;  
+        }  
+  
+        .glass-panel {  
+            background: var(--glass-bg);  
+            backdrop-filter: blur(25px);  
+            -webkit-backdrop-filter: blur(25px);  
+            border: 1px solid var(--border-color);  
+            border-radius: 1.5rem;  
+        }  
+  
+        ::-webkit-scrollbar { width: 8px; }  
+        ::-webkit-scrollbar-track { background: transparent; }  
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }  
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }  
+  
+        .gradient-text {  
+            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));  
+            -webkit-background-clip: text;  
+            -webkit-text-fill-color: transparent;  
+            background-clip: text;  
+            text-fill-color: transparent;  
+        }  
+  
+        #human-canvas {  
+            cursor: grab;  
+            touch-action: none;  
+        }  
+        #human-canvas:grabbing { cursor: grabbing; }  
+  
+        .option-btn, .body-part-btn {  
+            transition: all 0.3s ease;  
+        }  
+  
+        .body-part-btn:hover {  
+            border-color: var(--accent-cyan);  
+            color: var(--accent-cyan);  
+            transform: translateY(-2px);  
+        }  
+  
+        .option-btn:hover {  
+            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));  
+            color: var(--bg-primary);  
+            transform: translateY(-3px) scale(1.02);  
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.1);  
+        }  
+        .option-btn.active {  
+            background: linear-gradient(45deg, var(--accent-cyan), var(--accent-magenta));  
+            color: var(--bg-primary);  
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);  
+        }  
+          
+        .lucide { stroke-width: 1.5px; }  
+  
+        #loader {  
+            border: 4px solid var(--border-color);  
+            border-top: 4px solid var(--accent-cyan);  
+            border-radius: 50%;  
+            width: 50px;  
+            height: 50px;  
+            animation: spin 1s linear infinite;  
+        }  
+  
+        @keyframes spin {  
+            0% { transform: rotate(0deg); }  
+            100% { transform: rotate(360deg); }  
+        }  
+    </style>  
+</head>  
+<body class="w-full h-screen overflow-hidden">  
+  
+    <main id="app-container" class="relative w-full h-full flex items-center justify-center transition-opacity duration-1000 opacity-0">  
+          
+        <div id="canvas-container" class="absolute inset-0">  
+             <canvas id="human-canvas"></canvas>  
+        </div>  
+  
+        <div id="loader-container" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm">  
+            <div id="loader"></div>  
+            <p id="loading-text" class="mt-4 text-lg text-gray-300">Initializing 3D Visualizer...</p>  
+        </div>  
+  
+        <header class="absolute top-0 left-0 right-0 p-6 md:p-8 z-20">  
+            <div class="flex justify-between items-center">  
+                <div>  
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tighter gradient-text">Symptom Visualizer</h1>  
+                    <p class="text-sm text-text-secondary hidden md:block">A Digital Health Concept by Dev Marvelee</p>  
+                </div>  
+                <button id="reset-btn" class="glass-panel py-2 px-4 flex items-center gap-2 hover:border-cyan-400 transition-all duration-300">  
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>  
+                    <span class="hidden md:inline">Reset</span>  
+                </button>  
+            </div>  
+        </header>  
+  
+        <aside id="ui-sidebar" class="glass-panel absolute top-1/2 -translate-y-1/2 left-6 md:left-8 w-[90%] md:w-96 max-h-[85vh] z-10 flex flex-col p-6 md:p-8 shadow-2xl overflow-hidden">  
+              
+            <div id="welcome-screen" class="flex flex-col h-full">  
+                <div class="flex-grow">  
+                    <h2 class="text-3xl font-bold mb-2">Welcome.</h2>  
+                    <p class="text-text-secondary mb-6">This tool visualizes symptoms on a 3D model. Please select a body part to begin.</p>  
+                      
+                    <div class="space-y-3 mb-6">  
+                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Head">Head</button>  
+                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Chest">Chest</button>  
+                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Abdomen">Abdomen</button>  
+                    </div>  
+  
+                    <div class="p-4 border border-dashed border-yellow-500/50 bg-yellow-500/10 rounded-lg text-yellow-300 text-sm">  
+                        <div class="flex items-start gap-3">  
+                           <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>  
+                           <span><strong>Disclaimer:</strong> This is a conceptual demo, not a medical tool. Always consult a healthcare professional.</span>  
+                        </div>  
+                    </div>  
+                </div>  
+            </div>  
+  
+            <div id="symptom-screen" class="hidden flex-col h-full">  
+                <div class="flex items-center gap-3 mb-4">  
+                    <button id="back-btn" class="p-2 -ml-2 text-text-secondary hover:text-text-primary">  
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>  
+                    </button>  
+                    <h2 class="text-2xl font-bold">Log Symptoms: <span id="body-part-name" class="gradient-text"></span></h2>  
+                </div>  
+  
+                <div id="symptom-flow" class="flex-grow overflow-y-auto pr-2 space-y-6"></div>  
+                  
+                <div class="pt-4 mt-auto">  
+                     <button id="view-insights-btn" class="w-full py-3 px-6 bg-cyan-500/80 hover:bg-cyan-500 text-black rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed" disabled>  
+                        View Insights <i data-lucide="bar-chart-3" class="w-5 h-5"></i>  
+                    </button>  
+                </div>  
+            </div>  
+        </aside>  
+          
+        <div id="insights-modal" class="absolute inset-0 z-30 bg-black/70 backdrop-blur-lg flex items-center justify-center p-4 hidden">  
+             <div id="insights-panel" class="glass-panel w-full max-w-4xl h-[90vh] flex flex-col p-8 shadow-2xl relative">  
+                <button id="close-insights-btn" class="absolute top-6 right-6 p-2 text-text-secondary hover:text-text-primary">  
+                    <i data-lucide="x" class="w-8 h-8"></i>  
+                </button>  
+                <h2 class="text-4xl font-black mb-1 gradient-text">Visualization Insights</h2>  
+                <p class="text-text-secondary mb-6">A summary of the logged symptoms.</p>  
+  
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow overflow-y-auto pr-4">  
+                    <div class="space-y-6">  
+                        <div>  
+                            <h3 class="font-bold text-xl mb-3">Symptom Summary</h3>  
+                            <div id="symptom-summary-list" class="space-y-3 text-text-secondary"></div>  
+                        </div>  
+                         <div>  
+                            <h3 class="font-bold text-xl mb-3">General Wellness Note</h3>  
+                            <div id="wellness-info" class="p-4 bg-white/5 rounded-lg text-text-secondary text-sm space-y-2"></div>  
+                        </div>  
+                    </div>  
+                    <div class="space-y-6">  
+                         <div>  
+                            <h3 class="font-bold text-xl mb-3">Reported Symptom Severity</h3>  
+                            <div class="h-64 w-full"><canvas id="severity-chart"></canvas></div>  
+                        </div>  
+                    </div>  
+                </div>  
+             </div>  
+        </div>  
+    </main>  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+      
+    <script type="module">  
+        // Initialize Lucide Icons
+        lucide.createIcons();  
+  
+        // --- 1. DOM Element Cache ---
+        // Caching all our important HTML elements so we don't have to search for them repeatedly
+        const elements = {  
+            appContainer: document.getElementById('app-container'),  
+            canvas: document.getElementById('human-canvas'),  
+            loaderContainer: document.getElementById('loader-container'),  
+            loadingText: document.getElementById('loading-text'),  
+            welcomeScreen: document.getElementById('welcome-screen'),  
+            symptomScreen: document.getElementById('symptom-screen'),  
+            bodyPartName: document.getElementById('body-part-name'),  
+            symptomFlow: document.getElementById('symptom-flow'),  
+            backBtn: document.getElementById('back-btn'),  
+            viewInsightsBtn: document.getElementById('view-insights-btn'),  
+            insightsModal: document.getElementById('insights-modal'),  
+            insightsPanel: document.getElementById('insights-panel'),  
+            closeInsightsBtn: document.getElementById('close-insights-btn'),  
+            symptomSummaryList: document.getElementById('symptom-summary-list'),  
+            wellnessInfo: document.getElementById('wellness-info'),  
+            severityChartCanvas: document.getElementById('severity-chart'),  
+            resetBtn: document.getElementById('reset-btn'),  
+        };  
+  
+        // --- 2. Application State ---
+        // A central object to keep track of everything happening in the app
+        let state = {  
+            currentStep: 0,           // Tracks progress in the symptom question flow
+            selectedBodyPart: null,   // 'Head', 'Chest', or 'Abdomen'
+            loggedSymptoms: {},       // Stores all user answers, e.g., { Head: { head_issue: 'Headache', ... } }
+            activeEffects: {},        // Keeps track of 3D visual effects on the model
+            isModelReady: false,      // Flag to know when the 3D model is loaded
+        };  
+          
+        // --- 3. 3D Scene Variables ---
+        let scene, camera, renderer, humanModel;  
+          
+        /**
+         * Initializes the main Three.js scene, camera, renderer, and loads the 3D model.
+         */
+        function init3DScene() {  
+            scene = new THREE.Scene();  
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);  
+            camera.position.set(0, 0, 7);  
+  
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: elements.canvas, 
+                antialias: true, // Makes edges smoother
+                alpha: true      // Allows for a transparent background
+            });  
+            renderer.setSize(window.innerWidth, window.innerHeight);  
+            renderer.setPixelRatio(window.devicePixelRatio); // For sharp visuals on retina screens
+  
+            // --- Lighting ---
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8)); // Soft, global light
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1); // "Sunlight"
+            dirLight.position.set(5, 10, 7.5);  
+            scene.add(dirLight);  
+  
+            // --- 3D Model Loading ---
+            const loader = new THREE.GLTFLoader();  
+            elements.loadingText.textContent = 'Loading 3D model...';  
+            loader.load(  
+                'https://cdn.jsdelivr.net/gh/sunag/sea-explorer-3d/dist/assets/models/human.glb', // <-- The scuba diver model 😂
+                (gltf) => {  
+                    // --- On Model Load ---
+                    humanModel = gltf.scene;  
+                    humanModel.scale.set(3, 3, 3); // Make the model bigger
+                    humanModel.position.y = -3;    // Move it down
+                      
+                    // Create a new, uniform material for the model
+                    const newMaterial = new THREE.MeshStandardMaterial({  
+                        color: 0x888899,       // A nice grey-blue
+                        metalness: 0.7,  
+                        roughness: 0.3,  
+                        transparent: true,  
+                        opacity: 0.9           // Slightly see-through
+                    });  
+  
+                    // Apply this material to every part of the model
+                    humanModel.traverse((child) => {  
+                        if (child.isMesh) child.material = newMaterial;  
+                    });  
+  
+                    scene.add(humanModel);  
+                    state.isModelReady = true;  
+                    elements.loadingText.textContent = 'Finalizing...';  
                     
-                    <div class="space-y-3 mb-6">
-                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Head">Head</button>
-                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Chest">Chest</button>
-                        <button class="body-part-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg" data-part="Abdomen">Abdomen</button>
-                    </div>
+                    // Fade out the loader and fade in the app
+                    setTimeout(() => {  
+                        gsap.to(elements.loaderContainer, { opacity: 0, duration: 0.5, onComplete: () => elements.loaderContainer.style.display = 'none' });  
+                        gsap.to(elements.appContainer, { opacity: 1, duration: 1 });  
+                    }, 500);  
+                },  
+                (xhr) => {  
+                     // --- On Model Progress ---
+                     elements.loadingText.textContent = `Loading model... ${Math.round((xhr.loaded / xhr.total) * 100)}%`;  
+                },  
+                (error) => {  
+                    // --- On Model Error ---
+                    console.error('Error loading model:', error);  
+                    elements.loadingText.textContent = 'Error loading model. Please refresh.';  
+                }  
+            );  
+              
+            animate();       // Start the render loop
+            setupControls(); // Set up mouse/touch dragging
+        }  
+  
+        /**
+         * The main render loop (runs 60x per second).
+         */
+        function animate() {  
+            requestAnimationFrame(animate);  
+            if (humanModel) humanModel.rotation.y += 0.001; // Slow auto-rotation
+            renderer.render(scene, camera);  
+        }  
+  
+        // --- 4. Event Handlers ---
 
-                    <div class="p-4 border border-dashed border-yellow-500/50 bg-yellow-500/10 rounded-lg text-yellow-300 text-sm">
-                        <div class="flex items-start gap-3">
-                           <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-                           <span><strong>Disclaimer:</strong> This is a conceptual demo, not a medical tool. Always consult a healthcare professional.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="symptom-screen" class="hidden flex-col h-full">
-                <div class="flex items-center gap-3 mb-4">
-                    <button id="back-btn" class="p-2 -ml-2 text-text-secondary hover:text-text-primary">
-                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
-                    </button>
-                    <h2 class="text-2xl font-bold">Log Symptoms: <span id="body-part-name" class="gradient-text"></span></h2>
-                </div>
-
-                <div id="symptom-flow" class="flex-grow overflow-y-auto pr-2 space-y-6"></div>
-                
-                <div class="pt-4 mt-auto">
-                     <button id="view-insights-btn" class="w-full py-3 px-6 bg-cyan-500/80 hover:bg-cyan-500 text-black rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 opacity-50 cursor-not-allowed" disabled>
-                        View Insights <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-        </aside>
-        
-        <div id="insights-modal" class="absolute inset-0 z-30 bg-black/70 backdrop-blur-lg flex items-center justify-center p-4 hidden">
-             <div id="insights-panel" class="glass-panel w-full max-w-4xl h-[90vh] flex flex-col p-8 shadow-2xl relative">
-                <button id="close-insights-btn" class="absolute top-6 right-6 p-2 text-text-secondary hover:text-text-primary">
-                    <i data-lucide="x" class="w-8 h-8"></i>
-                </button>
-                <h2 class="text-4xl font-black mb-1 gradient-text">Visualization Insights</h2>
-                <p class="text-text-secondary mb-6">A summary of the logged symptoms.</p>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow overflow-y-auto pr-4">
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="font-bold text-xl mb-3">Symptom Summary</h3>
-                            <div id="symptom-summary-list" class="space-y-3 text-text-secondary"></div>
-                        </div>
-                         <div>
-                            <h3 class="font-bold text-xl mb-3">General Wellness Note</h3>
-                            <div id="wellness-info" class="p-4 bg-white/5 rounded-lg text-text-secondary text-sm space-y-2"></div>
-                        </div>
-                    </div>
-                    <div class="space-y-6">
-                         <div>
-                            <h3 class="font-bold text-xl mb-3">Reported Symptom Severity</h3>
-                            <div class="h-64 w-full"><canvas id="severity-chart"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-             </div>
-        </div>
-    </main>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script type="module">
-        lucide.createIcons();
-
-        const elements = {
-            appContainer: document.getElementById('app-container'),
-            canvas: document.getElementById('human-canvas'),
-            loaderContainer: document.getElementById('loader-container'),
-            loadingText: document.getElementById('loading-text'),
-            welcomeScreen: document.getElementById('welcome-screen'),
-            symptomScreen: document.getElementById('symptom-screen'),
-            bodyPartName: document.getElementById('body-part-name'),
-            symptomFlow: document.getElementById('symptom-flow'),
-            backBtn: document.getElementById('back-btn'),
-            viewInsightsBtn: document.getElementById('view-insights-btn'),
-            insightsModal: document.getElementById('insights-modal'),
-            insightsPanel: document.getElementById('insights-panel'),
-            closeInsightsBtn: document.getElementById('close-insights-btn'),
-            symptomSummaryList: document.getElementById('symptom-summary-list'),
-            wellnessInfo: document.getElementById('wellness-info'),
-            severityChartCanvas: document.getElementById('severity-chart'),
-            resetBtn: document.getElementById('reset-btn'),
-        };
-
-        let state = {
-            currentStep: 0,
-            selectedBodyPart: null,
-            loggedSymptoms: {},
-            activeEffects: {},
-            isModelReady: false,
-        };
-        
-        let scene, camera, renderer, humanModel;
-        
-        function init3DScene() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 7);
-
-            renderer = new THREE.WebGLRenderer({ canvas: elements.canvas, antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-            dirLight.position.set(5, 10, 7.5);
-            scene.add(dirLight);
-
-            const loader = new THREE.GLTFLoader();
-            elements.loadingText.textContent = 'Loading 3D model...';
-            loader.load(
-                'https://cdn.jsdelivr.net/gh/sunag/sea-explorer-3d/dist/assets/models/human.glb', 
-                (gltf) => {
-                    humanModel = gltf.scene;
-                    humanModel.scale.set(3, 3, 3);
-                    humanModel.position.y = -3;
-                    
-                    const newMaterial = new THREE.MeshStandardMaterial({
-                        color: 0x888899,
-                        metalness: 0.7,
-                        roughness: 0.3,
-                        transparent: true,
-                        opacity: 0.9
-                    });
-
-                    humanModel.traverse((child) => {
-                        if (child.isMesh) child.material = newMaterial;
-                    });
-
-                    scene.add(humanModel);
-                    state.isModelReady = true;
-                    elements.loadingText.textContent = 'Finalizing...';
-                    setTimeout(() => {
-                        gsap.to(elements.loaderContainer, { opacity: 0, duration: 0.5, onComplete: () => elements.loaderContainer.style.display = 'none' });
-                        gsap.to(elements.appContainer, { opacity: 1, duration: 1 });
-                    }, 500);
-                },
-                (xhr) => {
-                     elements.loadingText.textContent = `Loading model... ${Math.round((xhr.loaded / xhr.total) * 100)}%`;
-                },
-                (error) => {
-                    console.error('Error loading model:', error);
-                    elements.loadingText.textContent = 'Error loading model. Please refresh.';
-                }
-            );
+        // Adjust camera and renderer when window is resized
+        window.addEventListener('resize', () => {  
+            camera.aspect = window.innerWidth / window.innerHeight;  
+            camera.updateProjectionMatrix();  
+            renderer.setSize(window.innerWidth, window.innerHeight);  
+        });  
+          
+        /**
+         * Sets up mouse and touch controls for rotating the 3D model.
+         * THIS IS THE DEBUGGED FUNCTION.
+         */
+        function setupControls() {  
+            let isDragging = false, prevMouseX = 0, prevMouseY = 0;  
             
-            animate();
-            setupControls();
-        }
+            // --- Mouse Controls ---
+            elements.canvas.addEventListener('mousedown', e => {  
+                isDragging = true;  
+                prevMouseX = e.clientX; // <-- FIX: Set initial X on click
+            });  
+            elements.canvas.addEventListener('mouseup', () => isDragging = false);  
+            elements.canvas.addEventListener('mouseleave', () => isDragging = false);  
+            
+            elements.canvas.addEventListener('mousemove', e => {  
+                if (!isDragging || !humanModel) return;  
+                const deltaX = e.clientX - prevMouseX;  
+                humanModel.rotation.y += deltaX * 0.01; // Rotate based on X movement
+                prevMouseX = e.clientX; // Update position for next frame
+            });  
 
-        function animate() {
-            requestAnimationFrame(animate);
-            if (humanModel) humanModel.rotation.y += 0.001;
-            renderer.render(scene, camera);
-        }
+            // --- Touch Controls ---
+            elements.canvas.addEventListener('touchstart', e => {  
+                isDragging = true;  
+                const touch = e.touches[0];  
+                prevMouseX = touch.clientX; // <-- FIX: Set initial X on tap
+            }, { passive: true }); // <-- PRO-TIP: Better performance
+            
+            elements.canvas.addEventListener('touchend', () => isDragging = false);  
+            
+            elements.canvas.addEventListener('touchmove', e => {  
+                if (!isDragging || !humanModel) return;  
+                const touch = e.touches[0];  
+                const deltaX = touch.clientX - prevMouseX;  
+                humanModel.rotation.y += deltaX * 0.01; // Rotate based on X movement
+                prevMouseX = touch.clientX; // Update position for next frame
+            }, { passive: true }); // <-- PRO-TIP: Better performance
+        }  
+  
+        // --- 5. Application Logic ---
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-        
-        function setupControls() {
-            let isDragging = false, prevMouseX = 0, prevMouseY = 0;
-            elements.canvas.addEventListener('mousedown', e => { isDragging = true; });
-            elements.canvas.addEventListener('mouseup', () => isDragging = false);
-            elements.canvas.addEventListener('mouseleave', () => isDragging = false);
-            elements.canvas.addEventListener('mousemove', e => {
-                if (!isDragging || !humanModel) return;
-                const deltaX = e.clientX - prevMouseX;
-                humanModel.rotation.y += deltaX * 0.01;
-                prevMouseX = e.clientX;
-            });
-            elements.canvas.addEventListener('touchstart', e => isDragging = true);
-            elements.canvas.addEventListener('touchend', () => isDragging = false);
-            elements.canvas.addEventListener('touchmove', e => {
-                if (!isDragging || !humanModel) return;
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - prevMouseX;
-                humanModel.rotation.y += deltaX * 0.01;
-                prevMouseX = touch.clientX;
-            });
-        }
-
-        const symptomData = {
-            'Head': [
-                { id: 'head_issue', question: 'What type of head issue?', options: ['Headache', 'Dizziness', 'Migraine', 'Vision Problem'] },
-                { id: 'headache_type', question: 'Describe the headache:', options: ['Sharp', 'Dull', 'Throbbing', 'Constant'] },
-                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }
-            ],
-            'Chest': [
-                { id: 'chest_discomfort', question: 'What kind of chest discomfort?', options: ['Sharp Pain', 'Dull Ache', 'Tightness', 'Shortness of Breath'] },
-                { id: 'frequency', question: 'How often does this occur?', options: ['Constantly', 'Frequently', 'Occasionally', 'Rarely'] },
-                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }
-            ],
-            'Abdomen': [
-                { id: 'ab_pain', question: 'What type of abdominal discomfort?', options: ['Cramping', 'Bloating', 'Nausea', 'Sharp Pain'] },
-                { id: 'location', question: 'Which area of the abdomen?', options: ['Upper', 'Lower', 'Left', 'Right'] },
-                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }
-            ]
-        };
-        
-        function handleBodyPartSelect(part) {
-            state.selectedBodyPart = part;
-            state.currentStep = 0;
-            state.loggedSymptoms[part] = {};
-            elements.bodyPartName.textContent = part;
-            updateSymptomFlow();
-            switchToSymptomScreen();
-            addVisualEffect(part, { type: 'highlight', color: 0x00ffff });
-        }
-        
-        function updateSymptomFlow() {
-            const part = state.selectedBodyPart;
-            const stepData = symptomData[part][state.currentStep];
-
-            if (!stepData) {
-                elements.symptomFlow.innerHTML += `<p class="text-green-400 font-semibold p-4 bg-green-500/10 rounded-lg">All questions answered. You can now view insights or select another body part.</p>`;
-                elements.viewInsightsBtn.disabled = false;
-                gsap.to(elements.viewInsightsBtn, { opacity: 1, duration: 0.3, overwrite: true });
-                elements.viewInsightsBtn.classList.remove('cursor-not-allowed');
-                return;
+        // Our "database" of questions for each body part
+        const symptomData = {  
+            'Head': [  
+                { id: 'head_issue', question: 'What type of head issue?', options: ['Headache', 'Dizziness', 'Migraine', 'Vision Problem'] },  
+                { id: 'headache_type', question: 'Describe the headache:', options: ['Sharp', 'Dull', 'Throbbing', 'Constant'] },  
+                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }  
+            ],  
+            'Chest': [  
+                { id: 'chest_discomfort', question: 'What kind of chest discomfort?', options: ['Sharp Pain', 'Dull Ache', 'Tightness', 'Shortness of Breath'] },  
+                { id: 'frequency', question: 'How often does this occur?', options: ['Constantly', 'Frequently', 'Occasionally', 'Rarely'] },  
+                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }  
+            ],  
+            'Abdomen': [  
+                { id: 'ab_pain', question: 'What type of abdominal discomfort?', options: ['Cramping', 'Bloating', 'Nausea', 'Sharp Pain'] },  
+                { id: 'location', question: 'Which area of the abdomen?', options: ['Upper', 'Lower', 'Left', 'Right'] },  
+                { id: 'severity', question: 'On a scale of 1-5, how severe is it?', options: ['1 (Mild)', '2', '3', '4', '5 (Severe)'] }  
+            ]  
+        };  
+          
+        /**
+         * Called when a user clicks a body part button on the welcome screen.
+         */
+        function handleBodyPartSelect(part) {  
+            state.selectedBodyPart = part;  
+            state.currentStep = 0;  
+            state.loggedSymptoms[part] = {}; // Create a new log for this part
+            elements.bodyPartName.textContent = part;  
+            
+            updateSymptomFlow();      // Show the first question
+            switchToSymptomScreen();  // Animate to the question screen
+            addVisualEffect(part, { type: 'highlight', color: 0x00ffff }); // Highlight on 3D model
+        }  
+          
+        /**
+         * Shows the next question in the flow, or finishes if no questions are left.
+         */
+        function updateSymptomFlow() {  
+            const part = state.selectedBodyPart;  
+            const stepData = symptomData[part][state.currentStep];  
+  
+            // Check if we are out of questions
+            if (!stepData) {  
+                elements.symptomFlow.innerHTML += `<p class="text-green-400 font-semibold p-4 bg-green-500/10 rounded-lg">All questions answered. You can now view insights or select another body part.</p>`;  
+                // Enable the "View Insights" button
+                elements.viewInsightsBtn.disabled = false;  
+                gsap.to(elements.viewInsightsBtn, { opacity: 1, duration: 0.3, overwrite: true });  
+                elements.viewInsightsBtn.classList.remove('cursor-not-allowed');  
+                return;  
+            }  
+              
+            // Build the HTML for the new question step
+            const stepHTML = `  
+                <div class="symptom-step p-4 glass-panel opacity-0 -translate-y-4" data-step="${state.currentStep}">  
+                    <p class="font-semibold mb-4 text-lg">${stepData.question}</p>  
+                    <div class="grid grid-cols-2 gap-3">  
+                        ${stepData.options.map(opt => `<button class="option-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg text-sm" data-step-id="${stepData.id}" data-value="${opt}">${opt}</button>`).join('')}  
+                    </div>  
+                </div>  
+            `;  
+            elements.symptomFlow.innerHTML += stepHTML;  
+            
+            // Animate the new question in
+            const newStep = elements.symptomFlow.querySelector(`[data-step="${state.currentStep}"]`);  
+            gsap.to(newStep, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });  
+            elements.symptomFlow.scrollTop = elements.symptomFlow.scrollHeight; // Auto-scroll to bottom
+        }  
+  
+        // Event listener for the main welcome screen (uses delegation)
+        elements.welcomeScreen.addEventListener('click', e => {  
+            if (e.target.classList.contains('body-part-btn')) {
+                handleBodyPartSelect(e.target.dataset.part);  
             }
-            
-            const stepHTML = `
-                <div class="symptom-step p-4 glass-panel opacity-0 -translate-y-4" data-step="${state.currentStep}">
-                    <p class="font-semibold mb-4 text-lg">${stepData.question}</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        ${stepData.options.map(opt => `<button class="option-btn w-full p-3 bg-white/5 border border-white/10 rounded-lg text-sm" data-step-id="${stepData.id}" data-value="${opt}">${opt}</button>`).join('')}
-                    </div>
-                </div>
-            `;
-            elements.symptomFlow.innerHTML += stepHTML;
-            const newStep = elements.symptomFlow.querySelector(`[data-step="${state.currentStep}"]`);
-            gsap.to(newStep, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
-            elements.symptomFlow.scrollTop = elements.symptomFlow.scrollHeight;
-        }
-
-        elements.welcomeScreen.addEventListener('click', e => {
-            if (e.target.classList.contains('body-part-btn')) handleBodyPartSelect(e.target.dataset.part);
-        });
-
-        elements.symptomFlow.addEventListener('click', e => {
-            if (e.target.classList.contains('option-btn')) {
-                const button = e.target;
-                const { stepId, value } = button.dataset;
-                state.loggedSymptoms[state.selectedBodyPart][stepId] = value;
+        });  
+  
+        // Event listener for the question-flow area (uses delegation)
+        elements.symptomFlow.addEventListener('click', e => {  
+            if (e.target.classList.contains('option-btn')) {  
+                const button = e.target;  
+                const { stepId, value } = button.dataset;  
                 
-                const parentStep = button.closest('.symptom-step');
-                parentStep.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-                button.classList.add('active');
-
-                if (stepId === 'severity') {
-                    const severity = parseInt(value.charAt(0));
-                    addVisualEffect(state.selectedBodyPart, { type: 'pulse', color: 0xff0000, intensity: severity / 5 });
-                }
-                
-                state.currentStep++;
-                setTimeout(updateSymptomFlow, 300);
-            }
-        });
-
-        function switchToSymptomScreen() {
-            const tl = gsap.timeline();
-            tl.to(elements.welcomeScreen, { opacity: 0, duration: 0.3, onComplete: () => elements.welcomeScreen.style.display = 'none' });
-            tl.set(elements.symptomScreen, { display: 'flex', opacity: 0, y: 20 });
-            tl.to(elements.symptomScreen, { opacity: 1, y: 0, duration: 0.5 });
-        }
-        
-        function switchToWelcomeScreen() {
-            elements.symptomFlow.innerHTML = '';
-            const tl = gsap.timeline();
-            tl.to(elements.symptomScreen, { opacity: 0, duration: 0.3, onComplete: () => elements.symptomScreen.style.display = 'none' });
-            tl.set(elements.welcomeScreen, { display: 'flex', opacity: 0, y: 20 });
-            tl.to(elements.welcomeScreen, { opacity: 1, y: 0, duration: 0.5 });
-            
-            elements.viewInsightsBtn.disabled = true;
-            elements.viewInsightsBtn.style.opacity = 0.5;
-            elements.viewInsightsBtn.classList.add('cursor-not-allowed');
-
-            removeAllVisualEffects();
-        }
-
-        function addVisualEffect(part, effect) {
-             if (!humanModel) return;
-             const effectId = `${part}-${effect.type}`;
-             if (state.activeEffects[effectId]) humanModel.remove(state.activeEffects[effectId]);
-
-             const geometry = new THREE.SphereGeometry(0.3, 32, 32);
-             const material = new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: 0.6 });
-             const sphere = new THREE.Mesh(geometry, material);
+                // Log the answer
+                state.loggedSymptoms[state.selectedBodyPart][stepId] = value;  
+                  
+                // Disable all buttons in this step and highlight the selected one
+                const parentStep = button.closest('.symptom-step');  
+                parentStep.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);  
+                button.classList.add('active');  
+  
+                // If this was the severity question, add the pulsing effect
+                if (stepId === 'severity') {  
+                    const severity = parseInt(value.charAt(0)); // Gets "1" from "1 (Mild)"
+                    addVisualEffect(state.selectedBodyPart, { type: 'pulse', color: 0xff0000, intensity: severity / 5 });  
+                }  
+                  
+                // Move to the next step
+                state.currentStep++;  
+                setTimeout(updateSymptomFlow, 300); // Wait 300ms before showing next question
+            }  
+        });  
+  
+        /**
+         * Animates from the Welcome screen to the Symptom screen.
+         */
+        function switchToSymptomScreen() {  
+            const tl = gsap.timeline();  
+            tl.to(elements.welcomeScreen, { opacity: 0, duration: 0.3, onComplete: () => elements.welcomeScreen.style.display = 'none' });  
+            tl.set(elements.symptomScreen, { display: 'flex', opacity: 0, y: 20 });  
+            tl.to(elements.symptomScreen, { opacity: 1, y: 0, duration: 0.5 });  
+        }  
+          
+        /**
+         * Animates from the Symptom screen back to the Welcome screen.
+         */
+        function switchToWelcomeScreen() {  
+            elements.symptomFlow.innerHTML = ''; // Clear out old questions
+            const tl = gsap.timeline();  
+            tl.to(elements.symptomScreen, { opacity: 0, duration: 0.3, onComplete: () => elements.symptomScreen.style.display = 'none' });  
+            tl.set(elements.welcomeScreen, { display: 'flex', opacity: 0, y: 20 });  
+            tl.to(elements.welcomeScreen, { opacity: 1, y: 0, duration: 0.5 });  
+              
+            // Reset the "View Insights" button
+            elements.viewInsightsBtn.disabled = true;  
+            elements.viewInsightsBtn.style.opacity = 0.5;  
+            elements.viewInsightsBtn.classList.add('cursor-not-allowed');  
+  
+            removeAllVisualEffects(); // Clear 3D model highlights
+        }  
+  
+        /**
+         * Adds a visual effect (highlight or pulse) to the 3D model.
+         */
+        function addVisualEffect(part, effect) {  
+             if (!humanModel) return; // Safety check
+             const effectId = `${part}-${effect.type}`;  
              
-             const positions = { 'Head': new THREE.Vector3(0, 1.3, 0), 'Chest': new THREE.Vector3(0, 0, 0), 'Abdomen': new THREE.Vector3(0, -0.8, 0), };
-             if (positions[part]) {
-                 sphere.position.copy(positions[part]);
-                 humanModel.add(sphere);
-                 state.activeEffects[effectId] = sphere;
+             // Remove any existing effect of this type on this part
+             if (state.activeEffects[effectId]) {
+                humanModel.remove(state.activeEffects[effectId]);  
              }
-             if (effect.type === 'pulse') {
-                 gsap.to(sphere.scale, { x: 2, y: 2, z: 2, duration: 1, repeat: -1, yoyo: true });
-                 gsap.to(sphere.material, { opacity: 0.1, duration: 1, repeat: -1, yoyo: true });
-             }
-        }
-
-        function removeAllVisualEffects() {
-            Object.values(state.activeEffects).forEach(effectObj => humanModel.remove(effectObj));
-            state.activeEffects = {};
-        }
-
-        let severityChart;
-        function showInsights() {
-            elements.symptomSummaryList.innerHTML = Object.entries(state.loggedSymptoms).map(([part, symptoms]) => `
-                <div>
-                    <strong class="text-text-primary">${part}:</strong>
-                    <ul class="list-disc pl-5 mt-1">${Object.entries(symptoms).map(([k, v]) => `<li>${k.replace(/_/g, ' ')}: <span class="font-semibold">${v}</span></li>`).join('')}</ul>
-                </div>`).join('');
-            elements.wellnessInfo.innerHTML = `<p>This summary is for conceptual purposes. Proper diagnosis requires a comprehensive evaluation by a qualified healthcare provider.</p>`;
-
-            const labels = [], data = [];
-            Object.values(state.loggedSymptoms).forEach(symptoms => {
-                if (symptoms.severity) {
-                    labels.push(Object.values(symptoms)[0]);
-                    data.push(parseInt(symptoms.severity.charAt(0)));
-                }
-            });
-
-            if (severityChart) severityChart.destroy();
-            severityChart = new Chart(elements.severityChartCanvas, {
-                type: 'bar', data: { labels, datasets: [{ label: 'Severity', data, backgroundColor: 'rgba(0, 255, 255, 0.5)', borderColor: 'rgba(0, 255, 255, 1)', borderWidth: 1 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }, plugins: { legend: { display: false } } }
-            });
-
-            elements.insightsModal.style.display = 'flex';
-            gsap.fromTo(elements.insightsModal, { opacity: 0 }, { opacity: 1, duration: 0.5 });
-            gsap.fromTo(elements.insightsPanel, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5 });
-        }
+  
+             // Create a new sphere mesh for the effect
+             const geometry = new THREE.SphereGeometry(0.3, 32, 32);  
+             const material = new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: 0.6 });  
+             const sphere = new THREE.Mesh(geometry, material);  
+               
+             // Position the sphere based on the body part
+             const positions = { 
+                 'Head': new THREE.Vector3(0, 1.3, 0), 
+                 'Chest': new THREE.Vector3(0, 0, 0), 
+                 'Abdomen': new THREE.Vector3(0, -0.8, 0), 
+             };  
+             
+             if (positions[part]) {  
+                 sphere.position.copy(positions[part]);  
+                 humanModel.add(sphere); // Add to model (so it rotates with it)
+                 state.activeEffects[effectId] = sphere; // Track it
+             }  
+             
+             // If it's a pulse effect, start a GSAP animation
+             if (effect.type === 'pulse') {  
+                 gsap.to(sphere.scale, { x: 2, y: 2, z: 2, duration: 1, repeat: -1, yoyo: true });  
+                 gsap.to(sphere.material, { opacity: 0.1, duration: 1, repeat: -1, yoyo: true });  
+             }  
+        }  
+  
+        /**
+         * Removes all active visual effects from the 3D model.
+         */
+        function removeAllVisualEffects() {  
+            Object.values(state.activeEffects).forEach(effectObj => humanModel.remove(effectObj));  
+            state.activeEffects = {}; // Clear the tracking object
+        }  
+  
+        // --- 6. Insights Modal & Chart ---
         
-        elements.backBtn.addEventListener('click', switchToWelcomeScreen);
-        elements.viewInsightsBtn.addEventListener('click', () => !elements.viewInsightsBtn.disabled && showInsights());
-        elements.closeInsightsBtn.addEventListener('click', () => gsap.to(elements.insightsModal, { opacity: 0, duration: 0.5, onComplete: () => elements.insightsModal.style.display = 'none' }));
-        elements.resetBtn.addEventListener('click', () => {
-             state = { currentStep: 0, selectedBodyPart: null, loggedSymptoms: {}, activeEffects: {}, isModelReady: true };
-             switchToWelcomeScreen();
-        });
-
-        init3DScene();
-    </script>
-</body>
+        let severityChart; // Variable to hold our Chart.js instance
+        
+        /**
+         * Generates and displays the insights modal with summary and chart.
+         */
+        function showInsights() {  
+            // --- 1. Build Symptom Summary List ---
+            elements.symptomSummaryList.innerHTML = Object.entries(state.loggedSymptoms).map(([part, symptoms]) => `  
+                <div>  
+                    <strong class="text-text-primary">${part}:</strong>  
+                    <ul class="list-disc pl-5 mt-1">${Object.entries(symptoms).map(([k, v]) => `<li>${k.replace(/_/g, ' ')}: <span class="font-semibold">${v}</span></li>`).join('')}</ul>  
+                </div>`).join('');  
+            
+            // --- 2. Set Wellness Note ---
+            elements.wellnessInfo.innerHTML = `<p>This summary is for conceptual purposes. Proper diagnosis requires a comprehensive evaluation by a qualified healthcare provider.</p>`;  
+  
+            // --- 3. Prepare Chart Data ---
+            const labels = [], data = [];  
+            Object.values(state.loggedSymptoms).forEach(symptoms => {  
+                if (symptoms.severity) {  
+                    labels.push(Object.values(symptoms)[0]); // e.g., "Headache"
+                    data.push(parseInt(symptoms.severity.charAt(0))); // e.g., "3"
+                }  
+            });  
+  
+            // --- 4. Create/Update Chart ---
+            if (severityChart) severityChart.destroy(); // Destroy old chart instance
+            
+            severityChart = new Chart(elements.severityChartCanvas, {  
+                type: 'bar', 
+                data: { 
+                    labels, 
+                    datasets: [{ 
+                        label: 'Severity', 
+                        data, 
+                        backgroundColor: 'rgba(0, 255, 255, 0.5)', 
+                        borderColor: 'rgba(0, 255, 255, 1)', 
+                        borderWidth: 1 
+                    }] 
+                },  
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, max: 5, ticks: { color: 'white' } }, 
+                        x: { ticks: { color: 'white' } } 
+                    }, 
+                    plugins: { 
+                        legend: { display: false } 
+                    } 
+                }  
+            });  
+  
+            // --- 5. Show and Animate Modal ---
+            elements.insightsModal.style.display = 'flex';  
+            gsap.fromTo(elements.insightsModal, { opacity: 0 }, { opacity: 1, duration: 0.5 });  
+            gsap.fromTo(elements.insightsPanel, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'power2.out' });  
+        }  
+          
+        // --- 7. Final Event Listener Bindings ---
+        elements.backBtn.addEventListener('click', switchToWelcomeScreen);  
+        elements.viewInsightsBtn.addEventListener('click', () => !elements.viewInsightsBtn.disabled && showInsights());  
+        elements.closeInsightsBtn.addEventListener('click', () => gsap.to(elements.insightsModal, { opacity: 0, duration: 0.5, onComplete: () => elements.insightsModal.style.display = 'none' }));  
+        
+        elements.resetBtn.addEventListener('click', () => {  
+             // Reset state (but keep model status)
+             state = { 
+                 currentStep: 0, 
+                 selectedBodyPart: null, 
+                 loggedSymptoms: {}, 
+                 activeEffects: {}, 
+                 isModelReady: state.isModelReady // Preserve this!
+             };  
+             switchToWelcomeScreen(); // This function handles removing visual effects
+        });  
+  
+        // --- 8. Start the Application ---
+        init3DScene();  
+        
+    </script>  
+</body>  
 </html>
-
-
